@@ -32,7 +32,7 @@ jobs:
               --name yesen-backend \
               --env-file .env.production \
               -e NODE_ENV=production \
-              -p 5000:5001 \
+              -p 5000:5000 \
               --restart unless-stopped \
               yesen-crm-backend:latest
 
