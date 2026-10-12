@@ -2,7 +2,7 @@
 
 Backend for the Yesen Technologies Admin Panel — a CRM with a hard-coded
 Kanban pipeline for managing inquiries coming in from the website (Product
-pages, Service pages, Contact page). Built to the spec in the 05/08 MOMs.
+pages, Service pages, Contact page). Built to the spec in the 05/08 MOMss.
 
 Stack: **Node.js (ES Modules) + Express + MongoDB (Mongoose)**, package manager: **pnpm**.
 
