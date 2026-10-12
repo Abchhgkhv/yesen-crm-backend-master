@@ -20,7 +20,7 @@ jobs:
           script: |
             set -e
 
-            cd /home/your-user/yesen-crm
+            cd /home/ubuntu/yesen-crm
 
             git pull --ff-only origin main
 
