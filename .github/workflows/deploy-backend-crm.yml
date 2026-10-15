@@ -26,7 +26,10 @@ jobs:
           cd /home/ubuntu/yesen-ansible
           ansible-playbook -i inventory.ini deploy-backend.yml
 
+      
       - name: Verify backend health
         run: |
-          curl --fail --show-error --max-time 15 \
-            http://43.204.114.243/health
+          cd /home/ubuntu/yesen-ansible
+          ansible yesen_backend -i inventory.ini -m command -a \
+            "curl --fail --show-error --max-time 10 http://127.0.0.1/health"
+
