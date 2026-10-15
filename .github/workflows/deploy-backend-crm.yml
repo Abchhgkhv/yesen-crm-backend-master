@@ -1,0 +1,32 @@
+
+name: Deploy backend using Ansible
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy Yesen CRM Backend
+    runs-on: [self-hosted, linux, x64]
+
+    steps:
+      - name: Verify Ansible
+        run: |
+          whoami
+          ansible --version
+
+      - name: Deploy backend
+        run: |
+          cd /home/ubuntu/yesen-ansible
+          ansible-playbook -i inventory.ini deploy-backend.yml
+
+      - name: Verify backend health
+        run: |
+          curl --fail --show-error --max-time 15 \
+            http://43.204.114.243/health
