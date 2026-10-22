@@ -46,7 +46,7 @@ jobs:
             sudo microk8s ctr image import \
               /tmp/yesen-backend.tar
 
-            rm -f /tmp/yesen-backend.tar
+            sudo rm -f /tmp/yesen-backend.tar
 
             echo "Updating Kubernetes deployment"
             sudo microk8s kubectl set image \
