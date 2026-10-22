@@ -1,0 +1,65 @@
+
+name: Deploy Yesen CRM Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+      - '!README.md'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy backend to EC2 and MicroK8s
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 20m
+          script: |
+            set -eu
+
+            cd /home/ubuntu/yesen-crm-backend-master
+
+            echo "Updating backend source code"
+            git fetch origin main
+            git reset --hard origin/main
+
+            IMAGE_TAG=${{ github.sha }}
+
+            echo "Building backend Docker image"
+            sudo docker build \
+              -t yesen-backend:${IMAGE_TAG} .
+
+            echo "Exporting Docker image"
+            sudo docker save \
+              yesen-backend:${IMAGE_TAG} \
+              -o /tmp/yesen-backend.tar
+
+            echo "Importing image into MicroK8s"
+            sudo microk8s ctr image import \
+              /tmp/yesen-backend.tar
+
+            rm -f /tmp/yesen-backend.tar
+
+            echo "Updating Kubernetes deployment"
+            sudo microk8s kubectl set image \
+              deployment/yesen-backend \
+              yesen-backend=docker.io/library/yesen-backend:${IMAGE_TAG}
+
+            echo "Waiting for rollout"
+            sudo microk8s kubectl rollout status \
+              deployment/yesen-backend \
+              --timeout=180s
+
+            echo "Checking backend health"
+            curl --fail --show-error --max-time 15 \
+              http://127.0.0.1:30080/health
+
+            echo "Deployment completed successfully"
