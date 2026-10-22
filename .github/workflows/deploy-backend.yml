@@ -32,26 +32,24 @@ jobs:
             git reset --hard origin/main
 
             IMAGE_TAG=${{ github.sha }}
+            IMAGE_NAME="docker.io/library/yesen-backend:${IMAGE_TAG}"
 
             echo "Building backend Docker image"
-            sudo docker build \
-              -t yesen-backend:${IMAGE_TAG} .
+            sudo docker build -t "yesen-backend:${IMAGE_TAG}" .
 
             echo "Exporting Docker image"
-            sudo docker save \
-              yesen-backend:${IMAGE_TAG} \
+            sudo docker save "yesen-backend:${IMAGE_TAG}" \
               -o /tmp/yesen-backend.tar
 
             echo "Importing image into MicroK8s"
-            sudo microk8s ctr image import \
-              /tmp/yesen-backend.tar
+            sudo microk8s ctr image import /tmp/yesen-backend.tar
 
             sudo rm -f /tmp/yesen-backend.tar
 
             echo "Updating Kubernetes deployment"
             sudo microk8s kubectl set image \
               deployment/yesen-backend \
-              yesen-backend=docker.io/library/yesen-backend:${IMAGE_TAG}
+              "yesen-backend=${IMAGE_NAME}"
 
             echo "Waiting for rollout"
             sudo microk8s kubectl rollout status \
@@ -59,7 +57,20 @@ jobs:
               --timeout=180s
 
             echo "Checking backend health"
-            curl --fail --show-error --max-time 15 \
-              http://127.0.0.1:30080/health
+            for i in $(seq 1 10); do
+              if sudo microk8s kubectl run backend-health-check \
+                --rm -i --restart=Never \
+                --image=curlimages/curl:latest \
+                --image-pull-policy=IfNotPresent \
+                --command -- curl --fail --silent --show-error \
+                --max-time 5 http://yesen-backend:5001/health; then
+                echo "Backend health check passed"
+                exit 0
+              fi
 
-            echo "Deployment completed successfully"
+              echo "Waiting for backend..."
+              sleep 5
+            done
+
+            echo "Backend health check failed"
+            exit 1
