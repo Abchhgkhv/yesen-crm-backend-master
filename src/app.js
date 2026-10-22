@@ -56,7 +56,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(mongoSanitize()); // strips $/. operators from user input to prevent NoSQL injection
 
-app.get('/health', (req, res) => res.json({ status3: 'ok', service1: 'yesen-crm-backend', env2: config.env }));
+app.get('/health', (req, res) => res.json({ status1: 'ok', service1: 'yesen-crm-backend', env1: config.env }));
 
 app.use('/uploads', express.static(path.resolve(uploadDir)));
 
